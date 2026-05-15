@@ -5,7 +5,7 @@ from threading import Thread
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = os.environ.get("8649149463:AAFkBXm8veNQRy6y5Jk8eBE-MLmDX9f3pjs")
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 app = Flask(__name__)
