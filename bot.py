@@ -112,6 +112,6 @@ def run_bot():
     application.run_polling()
 
 # ГЛАВНОЕ — ПРАВИЛЬНАЯ строчка с двумя подчёркиваниями!
-if name == "__main__":
+if __name__ == "__main__":
     Thread(target=run_flask).start()
     run_bot()
