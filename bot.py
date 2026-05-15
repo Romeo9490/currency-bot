@@ -53,7 +53,7 @@ def run_bot():
     application.add_handler(CommandHandler("course", course))
     application.run_polling()
 
-if name == "__main__":
+if __name__ == "__main__":
     # Запускаем Flask в отдельном потоке (для Render)
     flask_thread = Thread(target=run_flask)
     flask_thread.start()
