@@ -147,7 +147,7 @@ def run_bot():
     print("🏦 Кредитный бот запущен!")
     application.run_polling()
 
-if name == "__main__":
+if __name__ == "__main__":
     from threading import Thread
     Thread(target=run_flask).start()
     run_bot()
