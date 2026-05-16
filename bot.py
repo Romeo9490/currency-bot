@@ -1,13 +1,10 @@
 import os
-import logging
-from flask import Flask
 from threading import Thread
+from flask import Flask
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ConversationHandler
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters
 
 TOKEN = os.environ.get("TOKEN")
-logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
-
 app = Flask(__name__)
 
 @app.route('/')
@@ -18,50 +15,39 @@ def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-# Этапы разговора
+# ========== КОД БОТА ==========
 SUMMA, SROK, PROCENT = range(3)
 
-async def start(update: Update, context):
-    await update.message.reply_text(
-        "🏦 <b>Кредитный калькулятор</b>\n\n"
-        "Введи сумму кредита (руб):",
-        parse_mode="HTML"
-    )
+async def start(update, context):
+    await update.message.reply_text("🏦 Введи сумму кредита (руб):")
     return SUMMA
 
-async def summa_handler(update: Update, context):
+async def summa_handler(update, context):
     try:
         suma = float(update.message.text.replace(" ", ""))
         context.user_data['summa'] = suma
-        await update.message.reply_text(
-            f"✅ Сумма: {suma:,.0f} руб\n\n"
-            "Введи срок кредита (месяцев):"
-        )
+        await update.message.reply_text(f"✅ Сумма: {suma:,.0f} руб\n\nВведи срок (месяцев):")
         return SROK
     except:
-        await update.message.reply_text("❌ Ошибка! Введи число")
+        await update.message.reply_text("❌ Введи число!")
         return SUMMA
 
-async def srok_handler(update: Update, context):
+async def srok_handler(update, context):
     try:
         srok = int(update.message.text)
         context.user_data['srok'] = srok
-        await update.message.reply_text(
-            f"✅ Срок: {srok} мес\n\n"
-            "Введи процентную ставку (%):"
-        )
+        await update.message.reply_text(f"✅ Срок: {srok} мес\n\nВведи процентную ставку (%):")
         return PROCENT
     except:
-        await update.message.reply_text("❌ Ошибка! Введи целое число")
+        await update.message.reply_text("❌ Введи число!")
         return SROK
 
-async def proce_handler(update: Update, context):
+async def proce_handler(update, context):
     try:
         proce = float(update.message.text.replace(",", "."))
         suma = context.user_data['summa']
         srok = context.user_data['srok']
         
-        # Расчёт
         a = proce / 12 / 100
         b = (1 + a) ** srok
         c = a * b
@@ -69,34 +55,21 @@ async def proce_handler(update: Update, context):
         f = c / c_1
         ezhe = suma * f
         
-        nach_proc = suma * proce / 100 / 12
-        osnov = ezhe - nach_proc
-        perep = ezhe * srok
-        vse = perep - suma
+        result = f"🏦 РЕЗУЛЬТАТ\n💰 Сумма: {suma:,.0f} руб\n📅 Срок: {srok} мес\n📈 Ставка: {proce}%\n📊 Платёж: {round(ezhe, 1)} руб"
         
-        result = f"🏦 <b>РЕЗУЛЬТАТ</b>\n\n"
-        result += f"💰 Сумма: {suma:,.0f} руб\n"
-        result += f"📅 Срок: {srok} мес\n"
-        result += f"📈 Ставка: {proce}%\n"
-        result += f"📊 Платёж: {round(ezhe, 1)} руб\n"
-        result += f"📉 Переплата: {vse:.1f} руб\n"
-        result += f"💰 Всего: {perep:.1f} руб"
-        
-        await update.message.reply_text(result, parse_mode="HTML")
+        await update.message.reply_text(result)
         await update.message.reply_text("🔄 /start - новый расчёт")
         return ConversationHandler.END
-        
     except:
-        await update.message.reply_text("❌ Ошибка! Попробуй ещё")
+        await update.message.reply_text("❌ Ошибка! /start")
         return PROCENT
 
-async def cancel(update: Update, context):
+async def cancel(update, context):
     await update.message.reply_text("❌ Отменено. /start")
     return ConversationHandler.END
 
 def run_bot():
     application = Application.builder().token(TOKEN).build()
-    
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -106,12 +79,10 @@ def run_bot():
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
-    
     application.add_handler(conv)
-    print("🏦 Кредитный бот запущен!")
+    print("✅ Кредитный бот запущен!")
     application.run_polling()
 
-# ГЛАВНОЕ — ПРАВИЛЬНАЯ строчка с двумя подчёркиваниями!
 if __name__ == "__main__":
     Thread(target=run_flask).start()
     run_bot()
